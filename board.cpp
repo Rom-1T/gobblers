@@ -134,4 +134,61 @@ Player Board::getWinner(){
 }
 
 
+std::ostream& Board::printHouses(std::ostream& stream, Player player) {
+	if (player==PLAYER_1){
+		for (int i=0; i<NB_SIZE; i++){
+			cout << p1Pieces[i] << endl;
+		}
+	}
+	if (player == PLAYER_2){
+		for (int i=0; i<NB_SIZE; i++){
+			cout << p2Pieces[i] << endl;
+		}
+	}
+}
+
+std::ostream& operator<<(std::ostream& stream, Board& board){
+	std::string ligne1 = "|";
+	std::string ligne2 = "|";
+	std::string ligne3 = " ";
+	for (int i; i<DIMENSIONS; i++){
+		ligne1.append(ligne1, "    |");
+		ligne2.append(ligne2, "____|");
+		ligne3.append(ligne3, "____ ");
+	}
+    
+	cout << ligne1 << endl;
+	
+	for (int i; i<DIMENSIONS;i++){
+		cout << "| "; 
+		for (int j; j<DIMENSIONS;j++){
+			if (board.state[i][j].peek().getOwner() == PLAYER_1){
+				if (board.state[i][j].peek().getSize() == SMALL){
+				cout << "*" << "  | ";
+				}
+				if (board.state[i][j].peek().getSize() == MEDIUM){
+				cout << "x" << "  | ";
+				}
+				if (board.state[i][j].peek().getSize() == LARGE){
+				cout << "X" << "  | ";
+				}
+			}
+			if (board.state[i][j].peek().getOwner() == PLAYER_2){
+				if (board.state[i][j].peek().getSize() == SMALL){
+				cout << "°" << "  | ";
+				}
+				if (board.state[i][j].peek().getSize() == MEDIUM){
+				cout << "o" << "  | ";
+				}
+				if (board.state[i][j].peek().getSize() == LARGE){
+				cout << "O" << "  | ";
+				}
+			}
+		}
+		cout << endl;
+		cout << ligne2 << endl;		
+	}
+        
+    cout << ligne3 << endl;
+}
 
