@@ -3,19 +3,23 @@
 #include "playerEnum.h"
 #include "config.h"
 #include "statusEnum.h"
-#include <iostream>
 #include "board.h"
+
+
 #include <array>
+#include <string>
+using namespace std;
 
 Board::Board(){
-    Cell state [DIMENSIONS][DIMENSIONS];
     for (int i=0; i<DIMENSIONS; i++){
         for (int j=0; j<DIMENSIONS; j++){
-            state[i][j]=Cell();
+            this->state[i][j]=Cell();
         }
     }
-    int p1Pieces[NB_SIZE];
-    int p2Pieces[NB_SIZE];
+    for (int i = 0; i<NB_SIZE; i++) {
+        this->p1Pieces[i] = NB_INITIAL_PIECES;
+        this->p2Pieces[i] = NB_INITIAL_PIECES;
+    }
 }
 
 Board::Board(const Board& other){
@@ -28,9 +32,9 @@ Board::Board(const Board& other){
 }
 
 Board::~Board(){
-    delete(state);
-    delete(p1Pieces);
-    delete(p2Pieces);
+//    delete(state);
+//    delete(p1Pieces);
+//    delete(p2Pieces);
 }
 
 Player Board::nextPlayer(Player currentPlayer) const {
@@ -130,65 +134,96 @@ Player Board::getWinner(){
             return liste_Cell[i][0].peek().getOwner();
         }
     }
-    return NO_PLAYER
+    return NO_PLAYER;
 }
 
 
 std::ostream& Board::printHouses(std::ostream& stream, Player player) {
+    std::string ligne = " ";
+    std::string ligne2 = "|";
+    std :: string p1 = "|PLAY|ER 1|    |";
+    std :: string p2 = "|PLAY|ER 2|    |";
+    for (int k = 0; k<DIMENSIONS; k++){
+        ligne.append("____ ");
+        ligne2.append("____|");
+    }
+    stream << ligne << endl;
+    stream << "|";
 	if (player==PLAYER_1){
 		for (int i=0; i<NB_SIZE; i++){
-			cout << p1Pieces[i] << endl;
+            stream << PIECES_P1[i];
+            stream << " :";
+            stream << p1Pieces[i];
+            stream << "|";
 		}
+        stream << endl;
+        stream << p1 << endl;
 	}
 	if (player == PLAYER_2){
-		for (int i=0; i<NB_SIZE; i++){
-			cout << p2Pieces[i] << endl;
-		}
-	}
+        for (int i=0; i<NB_SIZE; i++){
+            stream << PIECES_P2[i];
+            stream << " :";
+            stream << p2Pieces[i];
+            stream << "|";
+        }
+        stream << endl;
+        stream << p2 << endl;
+    }
+    stream <<  ligne2 << endl;
+    return stream;
 }
 
 std::ostream& operator<<(std::ostream& stream, Board& board){
 	std::string ligne1 = "|";
 	std::string ligne2 = "|";
 	std::string ligne3 = " ";
-	for (int i; i<DIMENSIONS; i++){
-		ligne1.append(ligne1, "    |");
-		ligne2.append(ligne2, "____|");
-		ligne3.append(ligne3, "____ ");
+    for (int k = 0; k<DIMENSIONS; k++){
+        ligne1.append( "    |");
+        ligne2.append("____|");
+        ligne3.append("____ ");
 	}
-    
-	cout << ligne1 << endl;
+
+
+
+//    stream << ligne1 << endl;
+    stream << ligne3 << endl;
 	
-	for (int i; i<DIMENSIONS;i++){
-		cout << "| "; 
-		for (int j; j<DIMENSIONS;j++){
-			if (board.state[i][j].peek().getOwner() == PLAYER_1){
-				if (board.state[i][j].peek().getSize() == SMALL){
-				cout << "*" << "  | ";
-				}
-				if (board.state[i][j].peek().getSize() == MEDIUM){
-				cout << "x" << "  | ";
-				}
-				if (board.state[i][j].peek().getSize() == LARGE){
-				cout << "X" << "  | ";
-				}
-			}
-			if (board.state[i][j].peek().getOwner() == PLAYER_2){
-				if (board.state[i][j].peek().getSize() == SMALL){
-				cout << "°" << "  | ";
-				}
-				if (board.state[i][j].peek().getSize() == MEDIUM){
-				cout << "o" << "  | ";
-				}
-				if (board.state[i][j].peek().getSize() == LARGE){
-				cout << "O" << "  | ";
-				}
-			}
-		}
-		cout << endl;
-		cout << ligne2 << endl;		
-	}
-        
-    cout << ligne3 << endl;
+    for (int i = 0; i<DIMENSIONS;i++){
+        stream << "| ";
+        for (int j = 0; j<DIMENSIONS;j++){
+            if (board.state[i][j].peek().getOwner() == PLAYER_1){
+                if (board.state[i][j].peek().getSize() == SMALL){
+                stream << SMALLP1<< "  | ";
+                }
+                if (board.state[i][j].peek().getSize() == MEDIUM){
+                stream << MEDIUMP1 << "  | ";
+                }
+                if (board.state[i][j].peek().getSize() == LARGE){
+                stream << LARGEP1 << "  | ";
+                }
+            }
+            else if (board.state[i][j].peek().getOwner() == PLAYER_2){
+                if (board.state[i][j].peek().getSize() == SMALL){
+                stream << SMALLP2 << "  | ";
+                }
+                if (board.state[i][j].peek().getSize() == MEDIUM){
+                stream << MEDIUMP2 << "  | ";
+                }
+                if (board.state[i][j].peek().getSize() == LARGE){
+                stream << LARGEP2 << "  | ";
+                }
+            }
+            else if (board.state[i][j].peek().getOwner() == NO_PLAYER){
+                stream << " " << "  | ";
+            }
+        }
+        stream << endl;
+        stream << ligne2 << endl;
+    }
+
+    board.printHouses(stream,PLAYER_1);
+    board.printHouses(stream,PLAYER_2);
+
+    return stream;
 }
 

@@ -18,6 +18,7 @@ class Board
         Cell& getCellAt(int line, int column);
         int* getHousesOfPlayer(Player player);
     public:
+
         Board();
         Board(const Board& other);
         ~Board();

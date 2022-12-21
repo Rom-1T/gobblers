@@ -20,4 +20,7 @@ const char SMALLP2 = '.';
 const char MEDIUMP2 = 'o';
 const char LARGEP2 = 'O';
 
+const char PIECES_P1[3] = {SMALLP1,MEDIUMP1,LARGEP1};
+const char PIECES_P2[3] = {SMALLP2,MEDIUMP2,LARGEP2};
+
 #endif // CONFIG_H
