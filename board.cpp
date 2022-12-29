@@ -4,10 +4,8 @@
 #include "config.h"
 #include "statusEnum.h"
 #include "board.h"
-
-
-#include <array>
 #include <string>
+
 using namespace std;
 
 Board::Board(){
@@ -32,9 +30,9 @@ Board::Board(const Board& other){
 }
 
 Board::~Board(){
-//    delete(state);
-//    delete(p1Pieces);
-//    delete(p2Pieces);
+    //    delete(state);
+    //    delete(p1Pieces);
+    //    delete(p2Pieces);
 }
 
 Player Board::nextPlayer(Player currentPlayer) const {
@@ -62,35 +60,42 @@ Size Board::getPieceSize(int line, int column){
 
 int Board::getNbPiecesInHouse(Player checkedPlayer, Size pieceSize){
     if (checkedPlayer == PLAYER_1) {
-        return this->p1Pieces[pieceSize];
+        return this->p1Pieces[pieceSize-1];
     }
     if (checkedPlayer == PLAYER_2) {
-        return this->p2Pieces[pieceSize];
+        return this->p2Pieces[pieceSize-1];
     }
-    else{
-        return -1;
-    }
+    return -1;
 }
 
 
 StatusEnum Board::placePiece(Player currentPlayer, Size pieceSize, int line, int column){
-    if (this->getNbPiecesInHouse(currentPlayer,pieceSize) <= 0){
+    if (this->getNbPiecesInHouse(currentPlayer,pieceSize) == 0){
         return INVALID_SOURCE;
     }
     Piece piece = Piece(currentPlayer, pieceSize);
     if (!this->state[line][column].canPush(piece)){
         return INVALID_TARGET;
     }
-    if (((currentPlayer!=PLAYER_1)&&(currentPlayer!=PLAYER_2))||(line>DIMENSIONS)||(column>DIMENSIONS)){
+    if (((currentPlayer!=PLAYER_1)&&(currentPlayer!=PLAYER_2))||(line>=DIMENSIONS)||(column>=DIMENSIONS)){
         return INVALID_ENTRY;
     }
     else{
+        piece = Piece(currentPlayer,pieceSize);
+        if (currentPlayer == PLAYER_1){
+            this->p1Pieces[pieceSize-1] --;
+            this->state[line][column].push(piece);
+        }
+        else {
+            this->p2Pieces[pieceSize-1] --;
+            this->state[line][column].push(piece);
+        }
         return OK;
     }
 }
 
 StatusEnum Board::movePiece(int sourceLine, int sourceColumn, int targetLine, int targetColumn){
-    if ((sourceLine>DIMENSIONS)||(sourceColumn>DIMENSIONS)||(targetLine>DIMENSIONS)||(targetColumn>DIMENSIONS)){
+    if ((sourceLine>=DIMENSIONS)||(sourceColumn>=DIMENSIONS)||(targetLine>=DIMENSIONS)||(targetColumn>=DIMENSIONS)){
         return INVALID_ENTRY;
     }
     if (this->getPieceSize(sourceLine,sourceColumn)==NONE){
@@ -98,43 +103,81 @@ StatusEnum Board::movePiece(int sourceLine, int sourceColumn, int targetLine, in
     }
     Piece sourcePiece = this->state[sourceLine][sourceColumn].peek();
     Cell targetCell = this->state[targetLine][targetColumn];
+    if (this->state[sourceLine][sourceColumn].canPop() == false){
+        return INVALID_SOURCE;
+    }
     if (!targetCell.canPush(sourcePiece)){
         return INVALID_TARGET;
     }
     else {
+        Piece sourcePiece = this->state[sourceLine][sourceColumn].pop();
+        this->state[targetLine][targetColumn].push(sourcePiece);
         return OK;
     }
 }
 
-
-std:: array<std::array<Cell,DIMENSIONS>,DIMENSIONS*2 + 2> Board::liste_Cell_To_Verify() {
-    std:: array<std::array<Cell,DIMENSIONS>,DIMENSIONS*2 + 2> liste_Cell;
-     for (int i=0; i<DIMENSIONS; i++){
-         for (int j=0; j<DIMENSIONS; j++){
-             liste_Cell[i][j] = this->state[i][j]; //Lignes
-             liste_Cell[i+DIMENSIONS][j] = this->state[j][i]; //Colonnes
-             liste_Cell[2*DIMENSIONS][j] = this->state[i][i]; // Diag 1
-             liste_Cell[2*DIMENSIONS + 1 ][j] = this->state[i][DIMENSIONS - 1 -i]; //Diag 2
-         }
-     }
-     return liste_Cell;
-}
-
-Player Board::getWinner(){
-    std:: array<std::array<Cell,DIMENSIONS>,DIMENSIONS*2 + 2> liste_Cell = this->liste_Cell_To_Verify();
-    for (int i = 0; i<2*DIMENSIONS + 2; i++) {
-        bool same_player = true;
-        for (int j=0; j<DIMENSIONS - 1; j++) {
-            if (liste_Cell[i][j].peek().getOwner() != liste_Cell[i][j+1].peek().getOwner() || liste_Cell[i][j].peek().getOwner() == NO_PLAYER) {
-                same_player = false;
-                break; //Les deux pièces qui se suivent ne sont pas posséder par le même joueur
+Player Board::getWinner() {
+    //LIGNES
+    for (int i=0; i<DIMENSIONS; i++) {
+        Player player_0 = this->state[i][0].peek().getOwner();
+        if (player_0 != NO_PLAYER) {
+            bool same_player = true;
+            for (int j=1; j<DIMENSIONS; j++){
+                Player player_j = this->state[i][j].peek().getOwner();
+                if (player_0 != player_j) {
+                    same_player = false;
+                }
+            }
+            if (same_player) {
+                return player_0;
             }
         }
-        if (same_player) {
-            return liste_Cell[i][0].peek().getOwner();
+        //COLONNES
+        for (int i=0; i<DIMENSIONS; i++) {
+            Player player_0 = this->state[0][i].peek().getOwner();
+            if (player_0 != NO_PLAYER) {
+                bool same_player = true;
+                for (int j=1; j<DIMENSIONS; j++){
+                    Player player_j = this->state[j][i].peek().getOwner();
+                    if (player_0 != player_j) {
+                        same_player = false;
+                    }
+                }
+                if (same_player) {
+                    return player_0;
+                }
+            }
         }
+        //DIAG 1
+        player_0 = this->state[0][0].peek().getOwner();
+        if (player_0 != NO_PLAYER) {
+            bool same_player = true;
+            for (int j=1; j<DIMENSIONS; j++){
+                Player player_j = this->state[j][j].peek().getOwner();
+                if (player_0 != player_j) {
+                    same_player = false;
+                }
+            }
+            if (same_player) {
+                return player_0;
+            }
+        }
+        player_0 = this->state[DIMENSIONS-1][0].peek().getOwner();
+        //DIAG 2
+        if (player_0 != NO_PLAYER) {
+            bool same_player = true;
+            for (int j=1; j<DIMENSIONS; j++){
+                Player player_j = this->state[DIMENSIONS-1-j][j].peek().getOwner();
+                if (player_0 != player_j) {
+                    same_player = false;
+                }
+            }
+            if (same_player) {
+                return player_0;
+            }
+        }
+        return NO_PLAYER;
     }
-    return NO_PLAYER;
 }
 
 
@@ -149,17 +192,17 @@ std::ostream& Board::printHouses(std::ostream& stream, Player player) {
     }
     stream << ligne << endl;
     stream << "|";
-	if (player==PLAYER_1){
-		for (int i=0; i<NB_SIZE; i++){
+    if (player==PLAYER_1){
+        for (int i=0; i<NB_SIZE; i++){
             stream << PIECES_P1[i];
             stream << " :";
             stream << p1Pieces[i];
             stream << "|";
-		}
+        }
         stream << endl;
         stream << p1 << endl;
-	}
-	if (player == PLAYER_2){
+    }
+    if (player == PLAYER_2){
         for (int i=0; i<NB_SIZE; i++){
             stream << PIECES_P2[i];
             stream << " :";
@@ -174,43 +217,43 @@ std::ostream& Board::printHouses(std::ostream& stream, Player player) {
 }
 
 std::ostream& operator<<(std::ostream& stream, Board& board){
-	std::string ligne1 = "|";
-	std::string ligne2 = "|";
-	std::string ligne3 = " ";
+    std::string ligne1 = "|";
+    std::string ligne2 = "|";
+    std::string ligne3 = " ";
     for (int k = 0; k<DIMENSIONS; k++){
         ligne1.append( "    |");
         ligne2.append("____|");
         ligne3.append("____ ");
-	}
+    }
 
 
 
-//    stream << ligne1 << endl;
+    //    stream << ligne1 << endl;
     stream << ligne3 << endl;
-	
+
     for (int i = 0; i<DIMENSIONS;i++){
         stream << "| ";
         for (int j = 0; j<DIMENSIONS;j++){
             if (board.state[i][j].peek().getOwner() == PLAYER_1){
                 if (board.state[i][j].peek().getSize() == SMALL){
-                stream << SMALLP1<< "  | ";
+                    stream << SMALLP1<< "  | ";
                 }
                 if (board.state[i][j].peek().getSize() == MEDIUM){
-                stream << MEDIUMP1 << "  | ";
+                    stream << MEDIUMP1 << "  | ";
                 }
                 if (board.state[i][j].peek().getSize() == LARGE){
-                stream << LARGEP1 << "  | ";
+                    stream << LARGEP1 << "  | ";
                 }
             }
             else if (board.state[i][j].peek().getOwner() == PLAYER_2){
                 if (board.state[i][j].peek().getSize() == SMALL){
-                stream << SMALLP2 << "  | ";
+                    stream << SMALLP2 << "  | ";
                 }
                 if (board.state[i][j].peek().getSize() == MEDIUM){
-                stream << MEDIUMP2 << "  | ";
+                    stream << MEDIUMP2 << "  | ";
                 }
                 if (board.state[i][j].peek().getSize() == LARGE){
-                stream << LARGEP2 << "  | ";
+                    stream << LARGEP2 << "  | ";
                 }
             }
             else if (board.state[i][j].peek().getOwner() == NO_PLAYER){

@@ -7,7 +7,6 @@
 #include "config.h"
 #include "statusEnum.h"
 #include <iostream>
-#include <array>
 class Board
 {
     private:
@@ -30,7 +29,6 @@ class Board
 
         StatusEnum placePiece(Player currentPlayer, Size pieceSize, int line, int column);
         StatusEnum movePiece(int sourceLine, int sourceColumn, int targetLine, int targetColumn);
-        std:: array<std::array<Cell,DIMENSIONS>,DIMENSIONS*2 + 2> liste_Cell_To_Verify(); //Function which return a list of possible winning Cells
         Player getWinner();
 
         std::ostream& printHouses(std::ostream& stream, Player player);

@@ -59,9 +59,13 @@ bool Cell::canPop() {
 }
 
 Piece& Cell::pop() {
-    Piece piece = this->stack[this->index];
+    Piece* pt;
+    Piece piece = Piece(this->stack[this->index]);
+    pt = &(piece);
+    Piece empty_piece = Piece();
+    this->stack[this->index] = empty_piece;
     this->index --;
-    return piece;
+    return *pt;
 }
 
 Piece& Cell::peek(){
